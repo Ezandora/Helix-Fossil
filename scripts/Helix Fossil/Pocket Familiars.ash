@@ -196,11 +196,16 @@ Vec2i Vec2iZero()
 	return Vec2iMake(0,0);
 }
 
-boolean Vec2iValueInRange(Vec2i v, int value)
+boolean Vec2iValueInInterval(Vec2i v, int value)
 {
     if (value >= v.x && value <= v.y)
         return true;
     return false;
+}
+
+boolean Vec2iValueInRange(Vec2i v, int value)
+{
+	return Vec2iValueInInterval(v, value);
 }
 
 boolean Vec2iEquals(Vec2i a, Vec2i b)
@@ -276,6 +281,10 @@ Vec2f Vec2fMultiply(Vec2f v, float c)
 Vec2f Vec2fAdd(Vec2f v, float c)
 {
     return Vec2fMake(v.x + c, v.y + c);
+}
+float Vec2fAverage(Vec2f v)
+{
+    return (v.x + v.y) * 0.5;
 }
 
 
@@ -775,6 +784,12 @@ familiar [int] listMakeBlankFamiliar()
 	return result;
 }
 
+int [int] listMakeBlankInt()
+{
+    int [int] result;
+    return result;
+}
+
 
 
 
@@ -1062,7 +1077,6 @@ string listJoinComponents(string [int] list, string joining_string)
 	return listJoinComponents(list, joining_string, "");
 }
 
-
 string listJoinComponents(item [int] list, string joining_string, string and_string)
 {
 	//lazy:
@@ -1248,6 +1262,14 @@ boolean [monster] listCopy(boolean [monster] l)
     return result;
 }
 
+int [item] listCopy(int [item] l)
+{
+    int [item] result;
+    foreach key in l
+        result[key] = l[key];
+    return result;
+}
+
 //Strict, in this case, means the keys start at 0, and go up by one per entry. This allows easy consistent access
 boolean listKeysMeetStrictRequirements(string [int] list)
 {
@@ -1338,6 +1360,29 @@ string [string] mapCopy(string [string] map)
     foreach key in map
         result[key] = map[key];
     return result;
+}
+
+boolean mapsAreEqual(string [string] map1, string [string] map2)
+{
+	if (map1.count() != map2.count())
+	{
+        //print_html("map1.c = " + map1.count() + " which is not " + map2.count());
+		return false;
+    }
+	foreach key1, v in map1
+	{
+		if (!(map2 contains key1))
+        {
+        	//print_html("map2 lacks " + key1);
+        	return false;
+        }
+        if (map2[key1] != v)
+        {
+            //print_html("map2 v(" + map2[key1] + " does not equal " + key1 + " (" + v + ")");
+        	return false;
+        }
+	}
+	return true;
 }
 
 boolean [string] listInvert(string [int] list)
@@ -1485,6 +1530,18 @@ int listKeyForIndex(monster [int] list, int index)
 	return -1;
 }
 
+int listKeyForIndex(int [int] list, int index)
+{
+    int i = 0;
+    foreach key in list
+    {
+        if (i == index)
+            return key;
+        i += 1;
+    }
+    return -1;
+}
+
 int llistKeyForIndex(string [int][int] list, int index)
 {
 	int i = 0;
@@ -1539,6 +1596,15 @@ monster listGetRandomObject(monster [int] list)
         return $monster[none];
     if (list.count() == 1)
     	return list[listKeyForIndex(list, 0)];
+    return list[listKeyForIndex(list, random(list.count()))];
+}
+
+int listGetRandomObject(int [int] list)
+{
+    if (list.count() == 0)
+        return -1;
+    if (list.count() == 1)
+        return list[listKeyForIndex(list, 0)];
     return list[listKeyForIndex(list, random(list.count()))];
 }
 
@@ -1657,6 +1723,7 @@ int [int] stringToIntIntList(string input, string delimiter)
 		return out;
 	foreach key, v in input.split_string(delimiter)
 	{
+		if (v == "") continue;
 		out.listAppend(v.to_int());
 	}
 	return out;
@@ -1665,6 +1732,13 @@ int [int] stringToIntIntList(string input, string delimiter)
 int [int] stringToIntIntList(string input)
 {
 	return stringToIntIntList(input, ",");
+}
+
+boolean [location] locationToLocationMap(location l)
+{
+	boolean [location] map;
+	map[l] = true;
+	return map;
 }
 
 
@@ -1788,12 +1862,18 @@ string capitaliseFirstLetter(string v)
 	return buf.to_string();
 }
 
+//shadowing; this may override ints
 string pluralise(float value, string non_plural, string plural)
 {
+	string value_out = "";
+	if (value.to_int() == value)
+		value_out = value.to_int();
+    else
+    	value_out = value;
 	if (value == 1.0)
-		return value + " " + non_plural;
+		return value_out + " " + non_plural;
 	else
-		return value + " " + plural;
+		return value_out + " " + plural;
 }
 
 string pluralise(int value, string non_plural, string plural)
@@ -2197,9 +2277,68 @@ void testItemIngredients()
 }*/
 
 
+
+static
+{
+    int PATH_UNKNOWN = -1;
+    int PATH_NONE = 0;
+    int PATH_BOOZETAFARIAN = 1;
+    int PATH_TEETOTALER = 2;
+    int PATH_OXYGENARIAN = 3;
+
+    int PATH_BEES_HATE_YOU = 4;
+    int PATH_WAY_OF_THE_SURPRISING_FIST = 6;
+    int PATH_TRENDY = 7;
+    int PATH_AVATAR_OF_BORIS = 8;
+    int PATH_BUGBEAR_INVASION = 9;
+    int PATH_ZOMBIE_SLAYER = 10;
+    int PATH_CLASS_ACT = 11;
+    int PATH_AVATAR_OF_JARLSBERG = 12;
+    int PATH_BIG = 14;
+    int PATH_KOLHS = 15;
+    int PATH_CLASS_ACT_2 = 16;
+    int PATH_AVATAR_OF_SNEAKY_PETE = 17;
+    int PATH_SLOW_AND_STEADY = 18;
+    int PATH_HEAVY_RAINS = 19;
+    int PATH_PICKY = 21;
+    int PATH_STANDARD = 22;
+    int PATH_ACTUALLY_ED_THE_UNDYING = 23;
+    int PATH_ONE_CRAZY_RANDOM_SUMMER = 24;
+    int PATH_COMMUNITY_SERVICE = 25;
+    int PATH_AVATAR_OF_WEST_OF_LOATHING = 26;
+    int PATH_THE_SOURCE = 27;
+    int PATH_NUCLEAR_AUTUMN = 28;
+    int PATH_GELATINOUS_NOOB = 29;
+    int PATH_LICENSE_TO_ADVENTURE = 30;
+    int PATH_LIVE_ASCEND_REPEAT = 31;
+    int PATH_POCKET_FAMILIARS = 32;
+    int PATH_G_LOVER = 33;
+    int PATH_DISGUISES_DELIMIT = 34;
+    int PATH_DEMIGUISE = 34;
+    int PATH_DARK_GYFFTE = 35;
+    int PATH_DARK_GIFT = 35;
+    int PATH_VAMPIRE = 35;
+    int PATH_2CRS = 36;
+    int PATH_KINGDOM_OF_EXPLOATHING = 37;
+    int PATH_EXPLOSION = 37;
+    int PATH_EXPLOSIONS = 37;
+    int PATH_EXPLODING = 37;
+    int PATH_EXPLODED = 37;
+    int PATH_OF_THE_PLUMBER = 38;
+    int PATH_PLUMBER = 38;
+    int PATH_LUIGI = 38;
+    int PATH_MAMA_LUIGI = 38;
+    int PATH_MARIO = 38;
+    int PATH_LOW_KEY_SUMMER = 39;
+    int PATH_LOKI = 39;
+}
+
 float numeric_modifier_replacement(item it, string modifier)
 {
     string modifier_lowercase = modifier.to_lower_case();
+    float additional = 0;
+    if (my_path_id() == PATH_G_LOVER && !it.contains_text("g") && !it.contains_text("G"))
+    	return 0.0;
     if (it == $item[your cowboy boots])
     {
         if (modifier_lowercase == "monster level" && $slot[bootskin].equipped_item() == $item[diamondback skin])
@@ -2218,7 +2357,15 @@ float numeric_modifier_replacement(item it, string modifier)
             return 50.0;
         //FIXME deal with rest (resistance, etc)
     }
-    return numeric_modifier(it, modifier);
+    //so, when we don't have the smithsness items equipped, they have a numeric modifier of zero.
+    //but, they always have an inherent value of five. so give them that.
+    //FIXME do other smithsness items
+    if (it == $item[a light that never goes out] && modifier_lowercase == "item drop")
+    {
+    	if (it.equipped_amount() == 0)
+     	   additional += 5;
+    }
+    return numeric_modifier(it, modifier) + additional;
 }
 
 
@@ -2284,7 +2431,7 @@ static
             }
             
             //Equipment:
-            if (it.to_slot() != $slot[none])
+            if ($slots[hat,weapon,off-hand,back,shirt,pants,acc1,acc2,acc3,familiar] contains it.to_slot())
             {
                 __equipment[it] = true;
                 if (it.numeric_modifier("combat rate") < 0)
@@ -2328,6 +2475,19 @@ boolean [item] equipmentWithNumericModifier(string modifier)
             extra_results[it] = true;
         }
     }
+    //damage + spell damage is basically the same for most things
+    string secondary_modifier = "";
+    foreach e in $elements[hot,cold,spooky,stench,sleaze]
+    {
+        if (modifier == e + " damage")
+            secondary_modifier = e + " spell damage";
+    }
+    if (secondary_modifier != "")
+    {
+    	foreach it in equipmentWithNumericModifier(secondary_modifier)
+        	extra_results[it] = true;
+    }
+    
     if (extra_results.count() == 0)
         return __equipment_by_numeric_modifier[modifier];
     else
@@ -2352,7 +2512,8 @@ static
     boolean [skill] __combat_skills_that_are_spells;
     void initialiseCombatSkillsThatAreSpells()
     {
-        foreach s in $skills[Awesome Balls of Fire,Bake,Blend,Blinding Flash,Boil,Candyblast,Cannelloni Cannon,Carbohydrate Cudgel,Chop,CLEESH,Conjure Relaxing Campfire,Creepy Lullaby,Curdle,Doubt Shackles,Eggsplosion,Fear Vapor,Fearful Fettucini,Freeze,Fry,Grease Lightning,Grill,Haggis Kick,Inappropriate Backrub,K&auml;seso&szlig;esturm,Mudbath,Noodles of Fire,Rage Flame,Raise Backup Dancer,Ravioli Shurikens,Salsaball,Saucegeyser,Saucemageddon,Saucestorm,Saucy Salve,Shrap,Slice,Snowclone,Spaghetti Spear,Stream of Sauce,Stringozzi Serpent,Stuffed Mortar Shell,Tear Wave,Toynado,Volcanometeor Showeruption,Wassail,Wave of Sauce,Weapon of the Pastalord]
+    	//Saucecicle,Surge of Icing are guesses
+        foreach s in $skills[Awesome Balls of Fire,Bake,Blend,Blinding Flash,Boil,Candyblast,Cannelloni Cannon,Carbohydrate Cudgel,Chop,CLEESH,Conjure Relaxing Campfire,Creepy Lullaby,Curdle,Doubt Shackles,Eggsplosion,Fear Vapor,Fearful Fettucini,Freeze,Fry,Grease Lightning,Grill,Haggis Kick,Inappropriate Backrub,K&auml;seso&szlig;esturm,Mudbath,Noodles of Fire,Rage Flame,Raise Backup Dancer,Ravioli Shurikens,Salsaball,Saucegeyser,Saucemageddon,Saucestorm,Saucy Salve,Shrap,Slice,Snowclone,Spaghetti Spear,Stream of Sauce,Stringozzi Serpent,Stuffed Mortar Shell,Tear Wave,Toynado,Volcanometeor Showeruption,Wassail,Wave of Sauce,Weapon of the Pastalord,Saucecicle,Surge of Icing]
         {
             __combat_skills_that_are_spells[s] = true;
         }
@@ -2387,7 +2548,27 @@ item lookupAWOLOilForMonster(monster m)
 
 static
 {
-    monster [location] __protonic_monster_for_location {$location[Cobb's Knob Treasury]:$monster[The ghost of Ebenoozer Screege], $location[The Haunted Conservatory]:$monster[The ghost of Lord Montague Spookyraven], $location[The Haunted Gallery]:$monster[The ghost of Waldo the Carpathian], $location[The Haunted Kitchen]:$monster[The Icewoman], $location[The Haunted Wine Cellar]:$monster[The ghost of Jim Unfortunato], $location[The Icy Peak]:$monster[the ghost of Sam McGee], $location[Inside the Palindome]:$monster[Emily Koops, a spooky lime], $location[Madness Bakery]:$monster[the ghost of Monsieur Baguelle], $location[The Old Landfill]:$monster[the ghost of Vanillica "Trashblossom" Gorton], $location[The Overgrown Lot]:$monster[the ghost of Oily McBindle], $location[The Skeleton Store]:$monster[boneless blobghost], $location[The Smut Orc Logging Camp]:$monster[The ghost of Richard Cockingham], $location[The Spooky Forest]:$monster[The Headless Horseman]};
+    monster [location] __protonic_monster_for_location {$location[Cobb's Knob Treasury]:$monster[The ghost of Ebenoozer Screege], $location[The Haunted Conservatory]:$monster[The ghost of Lord Montague Spookyraven], $location[The Haunted Gallery]:$monster[The ghost of Waldo the Carpathian], $location[The Haunted Kitchen]:$monster[The Icewoman], $location[The Haunted Wine Cellar]:$monster[The ghost of Jim Unfortunato], $location[The Icy Peak]:$monster[The ghost of Sam McGee], $location[Inside the Palindome]:$monster[Emily Koops, a spooky lime], $location[Madness Bakery]:$monster[the ghost of Monsieur Baguelle], $location[The Old Landfill]:$monster[The ghost of Vanillica "Trashblossom" Gorton], $location[The Overgrown Lot]:$monster[the ghost of Oily McBindle], $location[The Skeleton Store]:$monster[boneless blobghost], $location[The Smut Orc Logging Camp]:$monster[The ghost of Richard Cockingham], $location[The Spooky Forest]:$monster[The Headless Horseman]};
+}
+
+
+
+static
+{
+	boolean [monster][location] __monsters_natural_habitats;
+}
+boolean [location] getPossibleLocationsMonsterCanAppearInNaturally(monster m)
+{
+	if (__monsters_natural_habitats.count() == 0)
+	{
+		//initialise:
+        foreach l in $locations[]
+        {
+        	foreach key, m in l.get_monsters()
+            	__monsters_natural_habitats[m][l] = true;
+        }
+	}
+	return __monsters_natural_habitats[m];
 }
 
 boolean mafiaIsPastRevision(int revision_number)
@@ -2397,114 +2578,6 @@ boolean mafiaIsPastRevision(int revision_number)
     return (get_revision() >= revision_number);
 }
 
-
-static
-{
-    int PATH_UNKNOWN = -1;
-    int PATH_NONE = 0;
-    int PATH_BOOZETAFARIAN = 1;
-    int PATH_TEETOTALER = 2;
-    int PATH_OXYGENARIAN = 3;
-
-    int PATH_BEES_HATE_YOU = 4;
-    int PATH_WAY_OF_THE_SURPRISING_FIST = 6;
-    int PATH_TRENDY = 7;
-    int PATH_AVATAR_OF_BORIS = 8;
-    int PATH_BUGBEAR_INVASION = 9;
-    int PATH_ZOMBIE_SLAYER = 10;
-    int PATH_CLASS_ACT = 11;
-    int PATH_AVATAR_OF_JARLSBERG = 12;
-    int PATH_BIG = 14;
-    int PATH_KOLHS = 15;
-    int PATH_CLASS_ACT_2 = 16;
-    int PATH_AVATAR_OF_SNEAKY_PETE = 17;
-    int PATH_SLOW_AND_STEADY = 18;
-    int PATH_HEAVY_RAINS = 19;
-    int PATH_PICKY = 21;
-    int PATH_STANDARD = 22;
-    int PATH_ACTUALLY_ED_THE_UNDYING = 23;
-    int PATH_ONE_CRAZY_RANDOM_SUMMER = 24;
-    int PATH_COMMUNITY_SERVICE = 25;
-    int PATH_AVATAR_OF_WEST_OF_LOATHING = 26;
-    int PATH_THE_SOURCE = 27;
-    int PATH_NUCLEAR_AUTUMN = 28;
-    int PATH_GELATINOUS_NOOB = 29;
-    int PATH_LICENSE_TO_ADVENTURE = 30;
-    int PATH_LIVE_ASCEND_REPEAT = 31;
-    int PATH_POCKET_FAMILIARS = 32;
-}
-
-int __my_path_id_cached = -11;
-int my_path_id()
-{
-    if (__my_path_id_cached != -11)
-        return __my_path_id_cached;
-    string path_name = my_path();
-    
-    if (path_name == "" || path_name == "None")
-        __my_path_id_cached = PATH_NONE;
-    else if (path_name == "Teetotaler")
-        __my_path_id_cached = PATH_TEETOTALER;
-    else if (path_name == "Boozetafarian")
-        __my_path_id_cached = PATH_BOOZETAFARIAN;
-    else if (path_name == "Oxygenarian")
-        __my_path_id_cached = PATH_OXYGENARIAN;
-    else if (path_name == "Bees Hate You")
-        __my_path_id_cached = PATH_BEES_HATE_YOU;
-    else if (path_name == "Way of the Surprising Fist")
-        __my_path_id_cached = PATH_WAY_OF_THE_SURPRISING_FIST;
-    else if (path_name == "Trendy")
-        __my_path_id_cached = PATH_TRENDY;
-    else if (path_name == "Avatar of Boris")
-        __my_path_id_cached = PATH_AVATAR_OF_BORIS;
-    else if (path_name == "Bugbear Invasion")
-        __my_path_id_cached = PATH_BUGBEAR_INVASION;
-    else if (path_name == "Zombie Slayer")
-        __my_path_id_cached = PATH_ZOMBIE_SLAYER;
-    else if (path_name == "Class Act")
-        __my_path_id_cached = PATH_CLASS_ACT;
-    else if (path_name == "Avatar of Jarlsberg")
-        __my_path_id_cached = PATH_AVATAR_OF_JARLSBERG;
-    else if (path_name == "BIG!")
-        __my_path_id_cached = PATH_BIG;
-    else if (path_name == "KOLHS")
-        __my_path_id_cached = PATH_KOLHS;
-    else if (path_name == "Class Act II: A Class For Pigs")
-        __my_path_id_cached = PATH_CLASS_ACT_2;
-    else if (path_name == "Avatar of Sneaky Pete")
-        __my_path_id_cached = PATH_AVATAR_OF_SNEAKY_PETE;
-    else if (path_name == "Slow and Steady")
-        __my_path_id_cached = PATH_SLOW_AND_STEADY;
-    else if (path_name == "Heavy Rains")
-        __my_path_id_cached = PATH_HEAVY_RAINS;
-    else if (path_name == "Picky")
-        __my_path_id_cached = PATH_PICKY;
-    else if (path_name == "Standard")
-        __my_path_id_cached = PATH_STANDARD;
-    else if (path_name == "Actually Ed the Undying")
-        __my_path_id_cached = PATH_ACTUALLY_ED_THE_UNDYING;
-    else if (path_name == "One Crazy Random Summer")
-        __my_path_id_cached = PATH_ONE_CRAZY_RANDOM_SUMMER;
-    else if (path_name == "Community Service" || path_name == "25")
-        __my_path_id_cached = PATH_COMMUNITY_SERVICE;
-    else if (path_name == "Avatar of West of Loathing")
-        __my_path_id_cached = PATH_AVATAR_OF_WEST_OF_LOATHING;
-    else if (path_name == "The Source")
-        __my_path_id_cached = PATH_THE_SOURCE;
-    else if (path_name == "Nuclear Autumn" || path_name == "28")
-        __my_path_id_cached = PATH_NUCLEAR_AUTUMN;
-    else if (path_name == "Gelatinous Noob")
-        __my_path_id_cached = PATH_GELATINOUS_NOOB;
-    else if (path_name == "License to Adventure")
-        __my_path_id_cached = PATH_LICENSE_TO_ADVENTURE;
-    else if (path_name == "Live. Ascend. Repeat.")
-        __my_path_id_cached = PATH_LIVE_ASCEND_REPEAT;
-    else if (path_name == "Pocket Familiars" || path_name == "32")
-    	__my_path_id_cached = PATH_POCKET_FAMILIARS;
-    else
-        __my_path_id_cached = PATH_UNKNOWN;
-    return __my_path_id_cached;
-}
 
 boolean have_familiar_replacement(familiar f)
 {
@@ -2518,17 +2591,20 @@ boolean have_familiar_replacement(familiar f)
 boolean familiar_is_usable(familiar f)
 {
     //r13998 has most of these
-    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE || my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING || my_path_id() == PATH_LICENSE_TO_ADVENTURE || my_path_id() == PATH_POCKET_FAMILIARS)
+    if (my_path_id() == PATH_AVATAR_OF_BORIS || my_path_id() == PATH_AVATAR_OF_JARLSBERG || my_path_id() == PATH_AVATAR_OF_SNEAKY_PETE || my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING || my_path_id() == PATH_LICENSE_TO_ADVENTURE || my_path_id() == PATH_POCKET_FAMILIARS || my_path_id() == PATH_VAMPIRE)
         return false;
     if (!is_unrestricted(f))
         return false;
-	int single_familiar_run = get_property_int("singleFamiliarRun");
+    if (my_path_id() == PATH_G_LOVER && !f.contains_text("g") && !f.contains_text("G"))
+        return false;
+    //On second thought, this is terrible:
+	/*int single_familiar_run = get_property_int("singleFamiliarRun");
 	if (single_familiar_run != -1 && my_turncount() >= 30) //after 30 turns, they're probably sure
 	{
 		if (f == single_familiar_run.to_familiar())
 			return true;
 		return false;
-	}
+	}*/
 	if (my_path_id() == PATH_TRENDY)
 	{
 		if (!is_trendy(f))
@@ -2549,8 +2625,54 @@ boolean skill_is_usable(skill s)
         return false;
     if (!s.is_unrestricted())
         return false;
+    if (my_path_id() == PATH_G_LOVER && (!s.passive || s == $skill[meteor lore]) && !s.contains_text("g") && !s.contains_text("G"))
+    	return false;
     if ($skills[rapid prototyping] contains s)
         return $item[hand turkey outline].is_unrestricted();
+    return true;
+}
+
+boolean a_skill_is_usable(boolean [skill] skills)
+{
+	foreach s in skills
+	{
+		if (s.skill_is_usable()) return true;
+	}
+	return false;
+}
+
+boolean skill_is_currently_castable(skill s)
+{
+	//FIXME accordion thief songs, MP, a lot of things
+    if (s == $skill[Utensil Twist] && $slot[weapon].equipped_item().item_type() != "utensil")
+    {
+        return false;
+    }
+    return true;
+}
+
+boolean item_is_usable(item it)
+{
+    if (!it.is_unrestricted())
+        return false;
+    if (my_path_id() == PATH_G_LOVER && !it.contains_text("g") && !it.contains_text("G"))
+        return false;
+    if (my_path_id() == PATH_BEES_HATE_YOU && (it.contains_text("b") || it.contains_text("B")))
+    	return false;
+	return true;
+}
+
+//available_amount() except it tests against item_is_usable()
+int usable_amount(item it)
+{
+	if (!it.item_is_usable()) return 0;
+	return it.available_amount();
+}
+
+boolean effect_is_usable(effect e)
+{
+    if (my_path_id() == PATH_G_LOVER && !e.contains_text("g") && !e.contains_text("G"))
+        return false;
     return true;
 }
 
@@ -2826,18 +2948,39 @@ int substatsForLevel(int level)
 
 int availableFullness()
 {
-	return fullness_limit() - my_fullness();
+	int limit = fullness_limit();
+    if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Stomach].have_skill())
+    {
+        limit += 5;
+    }
+	return limit - my_fullness();
 }
 
 int availableDrunkenness()
 {
-    if (inebriety_limit() == 0) return 0; //certain edge cases
-	return inebriety_limit() - my_inebriety();
+    int limit = inebriety_limit();
+    if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0 && $skill[Replacement Liver].have_skill())
+    {
+    	limit += 5;
+    }
+    if (limit == 0) return 0; //certain edge cases
+	return limit - my_inebriety();
 }
 
 int availableSpleen()
 {
-	return spleen_limit() - my_spleen_use();
+	int limit = spleen_limit();
+	if (my_path_id() == PATH_ACTUALLY_ED_THE_UNDYING && limit == 0)
+	{
+        limit += 5; //always true
+		//mafia resets the limits to zero in the underworld because it does, so anti-mafia:
+        foreach s in $skills[Extra Spleen,Another Extra Spleen,Yet Another Extra Spleen,Still Another Extra Spleen,Just One More Extra Spleen,Okay Seriously\, This is the Last Spleen]
+        {
+        	if (s.have_skill())
+         		limit += 5;
+        }
+	} 
+	return limit - my_spleen_use();
 }
 
 item [int] missingComponentsToMakeItemPrivateImplementation(item it, int it_amounted_needed, int recursion_limit_remaining)
@@ -3715,7 +3858,7 @@ float averageAdventuresForConsumable(item it, boolean assume_monday)
             adventures = 9; //saved across lifetimes
     }
 	
-	if ($skill[saucemaven].have_skill() && $items[hot hi mein,cold hi mein,sleazy hi mein,spooky hi mein,stinky hi mein,Hell ramen,fettucini Inconnu,gnocchetti di Nietzsche,spaghetti with Skullheads,spaghetti con calaveras] contains it)
+	if ($skill[saucemaven].have_skill() && ($items[hot hi mein,cold hi mein,sleazy hi mein,spooky hi mein,stinky hi mein,Hell ramen,fettucini Inconnu,gnocchetti di Nietzsche,spaghetti with Skullheads,spaghetti con calaveras,Fleetwood mac 'n' cheese,haunted hell ramen] contains it))
 	{
 		if ($classes[sauceror,pastamancer] contains my_class())
 			adventures += 5;
@@ -3791,6 +3934,7 @@ boolean item_is_pvp_stealable(item it)
 
 int effective_familiar_weight(familiar f)
 {
+	if (f == $familiar[none]) return 0;
     int weight = f.familiar_weight();
     
     boolean is_moved = false;
@@ -3845,14 +3989,18 @@ boolean monster_has_zero_turn_cost(monster m)
 {
     if (m.attributes.contains_text("FREE"))
         return true;
+    if (m == lookupMonster("sausage goblin") && m != $monster[none]) return true;
+    if (lookupMonsters("LOV Engineer,LOV Enforcer,LOV Equivocator") contains m) return true;
         
     if ($monsters[lynyrd] contains m) return true; //not marked as FREE in attributes
     //if ($monsters[Black Crayon Beast,Black Crayon Beetle,Black Crayon Constellation,Black Crayon Golem,Black Crayon Demon,Black Crayon Man,Black Crayon Elemental,Black Crayon Crimbo Elf,Black Crayon Fish,Black Crayon Goblin,Black Crayon Hippy,Black Crayon Hobo,Black Crayon Shambling Monstrosity,Black Crayon Manloid,Black Crayon Mer-kin,Black Crayon Frat Orc,Black Crayon Penguin,Black Crayon Pirate,Black Crayon Flower,Black Crayon Slime,Black Crayon Undead Thing,Black Crayon Spiraling Shape,broodling seal,Centurion of Sparky,heat seal,hermetic seal,navy seal,Servant of Grodstank,shadow of Black Bubbles,Spawn of Wally,watertight seal,wet seal,lynyrd,BRICKO airship,BRICKO bat,BRICKO cathedral,BRICKO elephant,BRICKO gargantuchicken,BRICKO octopus,BRICKO ooze,BRICKO oyster,BRICKO python,BRICKO turtle,BRICKO vacuum cleaner,Witchess Bishop,Witchess King,Witchess Knight,Witchess Ox,Witchess Pawn,Witchess Queen,Witchess Rook,Witchess Witch,The ghost of Ebenoozer Screege,The ghost of Lord Montague Spookyraven,The ghost of Waldo the Carpathian,The Icewoman,The ghost of Jim Unfortunato,the ghost of Sam McGee,the ghost of Monsieur Baguelle,the ghost of Vanillica "Trashblossom" Gorton,the ghost of Oily McBindle,boneless blobghost,The ghost of Richard Cockingham,The Headless Horseman,Emily Koops\, a spooky lime,time-spinner prank,random scenester,angry bassist,blue-haired girl,evil ex-girlfriend,peeved roommate] contains m)
         //return true;
-    if (m == $monster[x-32-f combat training Snowman] && get_property_int("_snojoFreeFights") < 10)
+    if (m == $monster[X-32-F Combat Training Snowman] && get_property_int("_snojoFreeFights") < 10)
         return true;
     if (my_familiar() == $familiar[machine elf] && my_location() == $location[the deep machine tunnels] && get_property_int("_machineTunnelsAdv") < 5)
         return true;
+    if (lookupMonsters("terrible mutant,slime blob,government bureaucrat,angry ghost,annoyed snake") contains m && get_property_int("_voteFreeFights") < 3)
+    	return true;
     return false;
 }
 
@@ -3999,7 +4147,7 @@ monster convertEncounterToMonster(string encounter)
             encounter = encounter.replace_string(s, "");
     }
     if (encounter == "The Junk") //not a junksprite
-        return $monster[junk];
+        return $monster[Junk];
     if ((encounter.stringHasPrefix("the ") || encounter.stringHasPrefix("The")) && encounter.to_monster() == $monster[none])
     {
         encounter = encounter.substring(4);
@@ -4012,8 +4160,15 @@ monster convertEncounterToMonster(string encounter)
     return encounter.to_monster();
 }
 
-
-
+//Returns [0, 100]
+float resistanceLevelToResistancePercent(float level)
+{
+	float m = 0;
+	if (my_primestat() == $stat[mysticality])
+		m = 5;
+	if (level <= 3) return 10 * level + m;
+    return 90 - 50 * powf(5.0 / 6.0, level - 4) + m;
+}
 
 
 //Mafia's text output doesn't handle very long strings with no spaces in them - they go horizontally past the text box. This is common for to_json()-types.
@@ -4053,7 +4208,28 @@ void printSilent(string line)
 {
     print_html(line.processStringForPrinting());
 }
-boolean setting_only_show_macro_submitting = false;
+
+//have_equipped() exists
+boolean equipped(item it)
+{
+	return it.equipped_amount() > 0;
+}
+
+boolean have(item it)
+{
+	return it.available_amount() > 0;
+}
+
+boolean canAccessMall()
+{
+	if (!can_interact()) return false;
+	if (!get_property_boolean("autoSatisfyWithMall")) return false;
+	if (my_ascensions() == 0 && !get_property_ascension("lastDesertUnlock")) return false;
+	return true;
+}
+boolean setting_only_show_macro_submitting = false; //my_id() == 2456416;
+boolean __setting_helix_show_damage_choices = false;
+boolean __setting_helix_show_damage_debug_regular_attack = false;
 
 monster __m;
 string __page_text;
@@ -4062,10 +4238,15 @@ string __page_text;
 boolean [string] __monster_attributes;
 int [string] __monster_attributes_int;
 float [string] __monster_attributes_float;
+string [string] __monster_attributes_string;
 element [string] __monster_attributes_elements;
 boolean [string] __monster_one_crazy_random_summer_modifiers;
 
-string __helix_fossil_version = "1.1.3";
+string __helix_fossil_version = "1.1.4";
+
+
+boolean [skill] __abort_on_using_skill = $skills[suckerpunch];
+boolean [skill] __ignore_these_skills;
 //import "scripts/Helix Fossil/Helix Fossil/Pocket Familiars Alternate Algorithm.ash";
 
 int POCKET_FAMILIAR_OWNER_TYPE_UNKNOWN = 0;

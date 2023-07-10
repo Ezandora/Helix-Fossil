@@ -176,22 +176,29 @@ float PocketFamiliarsScoreFamiliarForSlot(PocketFamiliar f, int slot_id, boolean
 	
     priority += f.f.to_int().to_float() / 10000.0; //tie breaker
     
+    float move_priority = 0.0;
     foreach move in f.moves
     {
         //priority += moves_priority_affection[move];
         if (slot_id == SLOT_FRONT)
         {
         	if (f.level < 5)
-	        	priority += -secondary_moves_utility_overall[move] * 0.1;
-            priority += primary_moves_utility_overall[move] * 0.1;
+	        	move_priority += -secondary_moves_utility_overall[move] * 0.1;
+            move_priority += primary_moves_utility_overall[move] * 0.1;
         }
         else
-            priority += secondary_moves_utility_overall[move];
-        priority += secondary_moves_utility_always[move];
+            move_priority += secondary_moves_utility_overall[move];
+        move_priority += secondary_moves_utility_always[move];
         if (slot_id == SLOT_MIDDLE)
-        	priority += primary_moves_utility_overall[move] * -0.1; //kinda
+        	move_priority += primary_moves_utility_overall[move] * -0.1; //kinda
         
     }
+    if (moves_already_have["ULTIMATE: Blood Bath"] && !prefer_level_fives && slot_id == SLOT_MIDDLE)
+    {
+    	//We have slotter; prefer awful familiars.
+    	move_priority = -move_priority; 
+    }
+    priority += move_priority; 
         
     //attack + hp is not linearly correlated to level; some familiars, like the software bug, have maxed out stats at level four
     if (prefer_level_fives)
@@ -266,6 +273,11 @@ float PocketFamiliarsScoreFamiliarForSlot(PocketFamiliar f, int slot_id, boolean
         if (f.special_attributes["Armor"])
             priority -= 0.5;
     }
+    
+    /*if (moves_already_have["ULTIMATE: Blood Bath"] && priority < 1000)
+    {
+    	priority = -priority;
+    }*/
     //print_html(f.f + ": " + slot_id + " - " + priority);
 	return priority;
 }

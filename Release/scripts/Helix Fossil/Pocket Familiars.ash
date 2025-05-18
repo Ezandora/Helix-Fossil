@@ -4555,7 +4555,7 @@ PocketFamiliar PocketFamiliarParseFamiliarFromText(string table_text)
 PocketFamiliarFightStatus PocketFamiliarsParsePage(buffer page_text)
 {
 	PocketFamiliarFightStatus status;
-    if (!page_text.contains_text("<b>Fight!</b></td></tr>"))
+    if (!page_text.contains_text(">Fight!</b></td></tr>"))
         return status;
 	string [int][int] table_matches = page_text.group_string("<table class(.*?)</table>");
 	
@@ -4899,7 +4899,7 @@ PocketFamiliarMoveStats PocketFamiliarCalculateMoveStats(string move, PocketFami
 
 buffer PocketFamiliarsFightRound(buffer page_text)
 {
-    if (!page_text.contains_text("<b>Fight!</b></td></tr>"))
+    if (!page_text.contains_text(">Fight!</b></td></tr>"))
     	return page_text;
     PocketFamiliarFightStatus status = PocketFamiliarsParsePage(page_text);
     string chosen_move_name;
@@ -5018,7 +5018,7 @@ buffer PocketFamiliarsFight(boolean from_relay)
 	{
 		breakout -= 1;
         page_text = PocketFamiliarsFightRound(page_text);
-        if (!page_text.contains_text("<b>Fight!</b></td></tr>"))
+        if (!page_text.contains_text(">Fight!</b></td></tr>"))
         	break;
         if (page_text.contains_text("<!--WINWINWIN-->"))
         {

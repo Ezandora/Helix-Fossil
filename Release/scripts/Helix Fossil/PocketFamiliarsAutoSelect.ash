@@ -40,7 +40,7 @@ PocketFamiliarsFamTeamStatus PocketFamiliarsParseFamTeam(buffer page_text)
         }
     }
     
-    string left_text = page_text.group_string("<b>Active Team</b>(.*?)<b>Bullpen</b>")[0][1];
+    string left_text = page_text.group_string("<b[^>]*>Active Team</b>(.*?)<b[^>]*>Bullpen</b>")[0][1];
     //print_html("left_text = " + left_text.entity_encode());
     string [int][int] slot_matches = page_text.group_string("data-pos=\"(.*?)\">(.*?)</div>");
     foreach key in slot_matches

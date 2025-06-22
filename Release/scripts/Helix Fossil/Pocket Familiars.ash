@@ -1752,12 +1752,13 @@ boolean [location] locationToLocationMap(location l)
 
 
 
-buffer to_buffer(string str)
+//now built-in:
+/*buffer to_buffer(string str)
 {
 	buffer result;
 	result.append(str);
 	return result;
-}
+}*/
 
 buffer copyBuffer(buffer buf)
 {
@@ -2340,6 +2341,9 @@ static
     int PATH_QUANTUM_TERRARIUM = 42;
     int PATH_QUANTUM = 42;
     int PATH_WILDFIRE = 43;
+    //missing paths here
+    int PATH_SHRUNKEN_ADVENTURER = 49;
+    int PATH_SMALL = 49;
 }
 
 float numeric_modifier_replacement(item it, string modifier_name)
@@ -2753,6 +2757,15 @@ boolean [skill] makeConstantSkillArrayMutable(boolean [skill] array)
 boolean [effect] makeConstantEffectArrayMutable(boolean [effect] array)
 {
     boolean [effect] result;
+    foreach k in array
+        result[k] = array[k];
+    
+    return result;
+}
+
+boolean [int] makeConstantIntArrayMutable(boolean [int] array)
+{
+    boolean [int] result;
     foreach k in array
         result[k] = array[k];
     
@@ -4406,6 +4419,25 @@ boolean locationIsEventSpecific(location l)
 	
 	return false;
 }
+
+
+effect [skill] __skill_effect_override =
+{
+	$skill[Seal Clubbing Frenzy]:$effect[Seal Clubbing Frenzy],
+	$skill[Patience of the Tortoise]:$effect[Patience of the Tortoise],
+	$skill[Manicotti Meditation]:$effect[Pasta Oneness],
+	$skill[Sauce Contemplation]:$effect[Saucemastery],
+	$skill[Disco Aerobics]:$effect[Disco State of Mind],
+	$skill[Moxie of the Mariachi]:$effect[Mariachi Mood]
+};
+
+//replacement for to_effect()
+effect primaryEffectFromSkill(skill s)
+{
+    if (__skill_effect_override contains s)
+        return __skill_effect_override[s];
+    return s.to_effect();
+}
 boolean setting_only_show_macro_submitting = false; //my_id() == 2456416;
 boolean __setting_helix_show_damage_choices = false;
 boolean __setting_helix_show_damage_debug_regular_attack = false;
@@ -4422,7 +4454,7 @@ string [string] __monster_attributes_string;
 element [string] __monster_attributes_elements;
 boolean [string] __monster_one_crazy_random_summer_modifiers;
 
-string __helix_fossil_version = "1.1.5";
+string __helix_fossil_version = "1.1.6";
 
 
 boolean [skill] __abort_on_using_skill = $skills[suckerpunch];
@@ -4555,11 +4587,11 @@ PocketFamiliar PocketFamiliarParseFamiliarFromText(string table_text)
 PocketFamiliarFightStatus PocketFamiliarsParsePage(buffer page_text)
 {
 	PocketFamiliarFightStatus status;
-    if (!page_text.contains_text("<b>Fight!</b></td></tr>"))
+    if (!page_text.contains_text("<b[^>]*>Fight!</b></td></tr>"))
         return status;
 	string [int][int] table_matches = page_text.group_string("<table class(.*?)</table>");
 	
- 	status.monster_name_raw = page_text.group_string("<b><center>(.*?)'s Team:</b>")[0][1];
+ 	status.monster_name_raw = page_text.group_string("<b[^>]*><center>(.*?)'s Team:</b>")[0][1];
 	status.m = convertEncounterToMonster(status.monster_name_raw);
 	
 	foreach key in table_matches
@@ -4899,7 +4931,7 @@ PocketFamiliarMoveStats PocketFamiliarCalculateMoveStats(string move, PocketFami
 
 buffer PocketFamiliarsFightRound(buffer page_text)
 {
-    if (!page_text.contains_text("<b>Fight!</b></td></tr>"))
+    if (!page_text.contains_text("<b[^>]*>Fight!</b></td></tr>"))
     	return page_text;
     PocketFamiliarFightStatus status = PocketFamiliarsParsePage(page_text);
     string chosen_move_name;
@@ -5018,7 +5050,7 @@ buffer PocketFamiliarsFight(boolean from_relay)
 	{
 		breakout -= 1;
         page_text = PocketFamiliarsFightRound(page_text);
-        if (!page_text.contains_text("<b>Fight!</b></td></tr>"))
+        if (!page_text.contains_text("<b[^>]*>Fight!</b></td></tr>"))
         	break;
         if (page_text.contains_text("<!--WINWINWIN-->"))
         {

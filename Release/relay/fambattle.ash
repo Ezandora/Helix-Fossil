@@ -20,7 +20,8 @@ void main()
 	//new_text += "v" + __helix_fossil_version;
 	boolean within_combat = page_text.contains_text("<input type=submit class=button value='Give Up'>");
 	//string base_replacement_string = "<b>Your Team</b>";
-	string base_replacement_string = "<td style=\"padding: 5px; border: 1px solid blue;\">";
+//	string base_replacement_string = "<td style=\"padding: 5px; border: 1px solid blue;\">";
+	string base_replacement_string = "<td style=\"padding: 5px; border: 1px solid #00afff;\">";
 	
 	
 	string new_text;

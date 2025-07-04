@@ -4454,7 +4454,7 @@ string [string] __monster_attributes_string;
 element [string] __monster_attributes_elements;
 boolean [string] __monster_one_crazy_random_summer_modifiers;
 
-string __helix_fossil_version = "1.1.6";
+string __helix_fossil_version = "1.1.7";
 
 
 boolean [skill] __abort_on_using_skill = $skills[suckerpunch];
@@ -4587,7 +4587,7 @@ PocketFamiliar PocketFamiliarParseFamiliarFromText(string table_text)
 PocketFamiliarFightStatus PocketFamiliarsParsePage(buffer page_text)
 {
 	PocketFamiliarFightStatus status;
-    if (!page_text.contains_text("<b[^>]*>Fight!</b></td></tr>"))
+    if (!page_text.contains_text(">Fight!</b></td></tr>"))
         return status;
 	string [int][int] table_matches = page_text.group_string("<table class(.*?)</table>");
 	
@@ -4931,8 +4931,10 @@ PocketFamiliarMoveStats PocketFamiliarCalculateMoveStats(string move, PocketFami
 
 buffer PocketFamiliarsFightRound(buffer page_text)
 {
-    if (!page_text.contains_text("<b[^>]*>Fight!</b></td></tr>"))
-    	return page_text;
+    if (!page_text.contains_text(">Fight!</b></td></tr>"))
+    {
+        return page_text;
+    }
     PocketFamiliarFightStatus status = PocketFamiliarsParsePage(page_text);
     string chosen_move_name;
     string chosen_move_submit;
@@ -5050,7 +5052,7 @@ buffer PocketFamiliarsFight(boolean from_relay)
 	{
 		breakout -= 1;
         page_text = PocketFamiliarsFightRound(page_text);
-        if (!page_text.contains_text("<b[^>]*>Fight!</b></td></tr>"))
+        if (!page_text.contains_text(">Fight!</b></td></tr>"))
         	break;
         if (page_text.contains_text("<!--WINWINWIN-->"))
         {
